@@ -28,10 +28,8 @@ if uploaded_file is not None:
     # Assuming last column is target
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
-
-    # ==============================
+    
     # Model Selection Dropdown
-    # ==============================
     model_name = st.selectbox(
         "Select Model",
         (
@@ -78,9 +76,7 @@ if uploaded_file is not None:
     st.write(f"AUC Score: {auc:.4f}")
     st.write(f"MCC Score: {mcc:.4f}")
 
-    # ==============================
     # Confusion Matrix
-    # ==============================
     st.write("## Confusion Matrix")
     cm = confusion_matrix(y, y_pred)
 
