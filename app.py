@@ -10,74 +10,93 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score,
     matthews_corrcoef,
-    confusion_matrix,
-    classification_report
+    confusion_matrix
 )
 
 st.title("Breast Cancer Classification App")
 
-# Dataset Upload
-uploaded_file = st.file_uploader("Upload Test CSV File", type=["csv"])
+# Download Sample Test Data
 
-if uploaded_file is not None:
+st.subheader("Download Sample Test CSV")
+try:
+    sample_data = pd.read_csv("model/test_data.csv")
+    st.download_button(
+        label="Download Sample Test CSV",
+        data=sample_data.to_csv(index=False),
+        file_name="sample_test_data.csv",
+        mime="text/csv"
+    )
+except:
+    st.info("Sample test data not found in repository.")
+
+
+# Upload Section
+
+st.subheader("Upload Test CSV File")
+uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+
+
+# Model Selection
+
+st.subheader("Select Model")
+model_name = st.selectbox(
+    "",
+    [
+        "Logistic Regression",
+        "Decision Tree",
+        "KNN",
+        "Naive Bayes",
+        "Random Forest",
+        "XGBoost"
+    ]
+)
+
+
+# Run Prediction Button
+
+run_button = st.button("Run Prediction")
+
+# Prediction Logic
+
+if run_button and uploaded_file is not None:
+
     data = pd.read_csv(uploaded_file)
-
-    st.write("### Dataset Preview")
-    st.dataframe(data.head())
-
-    # Assuming last column is target
     X = data.iloc[:, :-1]
     y = data.iloc[:, -1]
-    
-    # Model Selection Dropdown
-    model_name = st.selectbox(
-        "Select Model",
-        (
-            "Logistic Regression",
-            "Decision Tree",
-            "KNN",
-            "Naive Bayes",
-            "Random Forest",
-            "XGBoost"
-        )
-    )
 
-    # Load selected model
-    if model_name == "Logistic Regression":
-        model = joblib.load("model/logistic_regression.pkl")
-    elif model_name == "Decision Tree":
-        model = joblib.load("model/decision_tree.pkl")
-    elif model_name == "KNN":
-        model = joblib.load("model/knn.pkl")
-    elif model_name == "Naive Bayes":
-        model = joblib.load("model/naive_bayes.pkl")
-    elif model_name == "Random Forest":
-        model = joblib.load("model/random_forest.pkl")
-    else:
-        model = joblib.load("model/xgboost.pkl")
+    model_files = {
+        "Logistic Regression": "model/logistic_regression.pkl",
+        "Decision Tree": "model/decision_tree.pkl",
+        "KNN": "model/knn.pkl",
+        "Naive Bayes": "model/naive_bayes.pkl",
+        "Random Forest": "model/random_forest.pkl",
+        "XGBoost": "model/xgboost.pkl"
+    }
 
-    # Predictions
+    model = joblib.load(model_files[model_name])
+
     y_pred = model.predict(X)
     y_prob = model.predict_proba(X)[:, 1]
 
-    # Evaluation Metrics
-    accuracy = accuracy_score(y, y_pred)
-    precision = precision_score(y, y_pred)
-    recall = recall_score(y, y_pred)
-    f1 = f1_score(y, y_pred)
-    auc = roc_auc_score(y, y_prob)
-    mcc = matthews_corrcoef(y, y_pred)
+    # Metrics
 
-    st.write("## Evaluation Metrics")
-    st.write(f"Accuracy: {accuracy:.4f}")
-    st.write(f"Precision: {precision:.4f}")
-    st.write(f"Recall: {recall:.4f}")
-    st.write(f"F1 Score: {f1:.4f}")
-    st.write(f"AUC Score: {auc:.4f}")
-    st.write(f"MCC Score: {mcc:.4f}")
+    st.subheader("Evaluation Metrics")
+
+    metrics = {
+        "Accuracy": accuracy_score(y, y_pred),
+        "Precision": precision_score(y, y_pred),
+        "Recall": recall_score(y, y_pred),
+        "F1 Score": f1_score(y, y_pred),
+        "AUC Score": roc_auc_score(y, y_prob),
+        "MCC Score": matthews_corrcoef(y, y_pred)
+    }
+
+    metrics_df = pd.DataFrame(metrics.items(), columns=["Metric", "Value"])
+    st.table(metrics_df)
 
     # Confusion Matrix
-    st.write("## Confusion Matrix")
+    
+    st.subheader("Confusion Matrix")
     cm = confusion_matrix(y, y_pred)
 
     fig, ax = plt.subplots()
@@ -86,6 +105,5 @@ if uploaded_file is not None:
     ax.set_ylabel("Actual")
     st.pyplot(fig)
 
-    # Classification Report
-    st.write("## Classification Report")
-    st.text(classification_report(y, y_pred))
+elif run_button and uploaded_file is None:
+    st.warning("Please upload a CSV file before running prediction.")
