@@ -15,21 +15,6 @@ from sklearn.metrics import (
 
 st.title("Breast Cancer Classification App")
 
-# Download Sample Test Data
-
-st.subheader("Download Sample Test CSV")
-try:
-    sample_data = pd.read_csv("model/test_data.csv")
-    st.download_button(
-        label="Download Sample Test CSV",
-        data=sample_data.to_csv(index=False),
-        file_name="sample_test_data.csv",
-        mime="text/csv"
-    )
-except:
-    st.info("Sample test data not found in repository.")
-
-
 # Upload Section
 
 st.subheader("Upload Test CSV File")
